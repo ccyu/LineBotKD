@@ -1,4 +1,4 @@
-LineBotTemplate: A simple Golang LineBot Template for Line Bot API
+LineBotKD: A simple Golang LineBot to Report Stock KD indicator
 ==============
 
 License
