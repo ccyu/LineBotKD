@@ -18,7 +18,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
+	_ "github.com/lib/pq"
 	"github.com/line/line-bot-sdk-go/linebot"
 )
 
@@ -56,9 +58,16 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 		if event.Type == linebot.EventTypeMessage {
 			switch message := event.Message.(type) {
 			case *linebot.TextMessage:
+				var cmd = strings.ToLower(message.Text)
+				switch strings.Trim(cmd, " \n") {
+				case "register":
+					if _, err := db.Exec("INSERT INTO line_user VALUES ('" + event.Source.UserID + "')"); err != nil {
+						log.Print("Error add line user: %q", err)
+					}
 
-				if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message.ID+":"+message.Text+" Cool!")).Do(); err != nil {
-					log.Print(err)
+					if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("Register successfully!")).Do(); err != nil {
+						log.Print(err)
+					}
 				}
 			}
 		}
@@ -71,7 +80,7 @@ func InitDB() {
 	if err != nil {
 		log.Fatalf("Error opening database: %q", err)
 	}
-	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS user (id char(33))"); err != nil {
+	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS line_user (uid char(33))"); err != nil {
 		log.Print("Error creating database table: %q", err)
 		return
 	}
